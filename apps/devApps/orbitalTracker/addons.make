@@ -1,0 +1,11 @@
+ofxAndroid
+ofxAccelerometer
+ofxXmlSettings
+ofxSpatialHash
+ofxGui
+ofxTime
+ofxGeo
+ofxSatellite
+ofxGPS
+ofxSunCalc
+ofxDatGui

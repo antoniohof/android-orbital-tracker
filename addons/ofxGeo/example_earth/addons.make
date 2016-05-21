@@ -1,0 +1,4 @@
+ofxGeo
+ofxSatellite
+ofxSpatialHash
+ofxTime

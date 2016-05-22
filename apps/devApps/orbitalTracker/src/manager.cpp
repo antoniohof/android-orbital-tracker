@@ -9,25 +9,29 @@ void manager::setup(){
     ofLog() << "initializing GPS...";
     if (gps.startLocation()) ofLog() << "GPS initializesd!"; else ofLogError() << "GPS initialization failure";
     ofAddListener(ofxGPS::newLocationDataEvent, this, &manager::onGPSUpdate);
+    myPosition = ofVec3f(0,0,0);
+    gpsCalcTimer = ofGetElapsedTimeMillis();
 
     //update timer
     updateTimer = ofGetElapsedTimeMillis();
+    retrying = false;
 }
 
 void manager::update(){
-
     for(int i = 0; i<objects.size(); i++) objects[i].update();
 
-    //update satellite internet data every 5 minutes - but if not connected try every 1 s
+    //update satellite internet data every 2 minutes - but if not connected try every 10 s
     if (!TLE->isThreadRunning() && ofGetElapsedTimeMillis() > updateTimer) {
-        switch (TLE->bLoaded){
-            case false:
-                updateTimer = ofGetElapsedTimeMillis() + 1000;
-                break;
-            default:
-                updateTimer = ofGetElapsedTimeMillis() + 300000;
+        if(!TLE->bServersOnline || !ofxAndroidIsOnline()) {
+            updateTimer = ofGetElapsedTimeMillis() + 10000;
+            TLE->startThread();
+            retrying = true;
         }
-        TLE->startThread();
+        else{
+            if(!retrying) TLE->startThread();
+            retrying = false;
+            updateTimer = ofGetElapsedTimeMillis() + 120000;
+        }
     }
 }
 
@@ -36,27 +40,26 @@ void manager::draw(){
 
     //draw my position
     ofSetColor(0,255,0);
-    if(ofToString(myCoordenates) != "0,0,0") ofDrawSphere(getMyPosition(), 80);
+    if(ofToString(myCoordinates) != "0,0,0") ofDrawSphere(getMyPosition(), 80);
 
 }
 
 ofVec3f manager::getMyPosition(){
-    ofVec3f myPosition;
-    ofQuaternion latRotation;
-    ofQuaternion longRotation;
-
-    ofVec3f center = ofVec3f(0,0, float(myCoordenates.getElevation() / 1000 + ofx::Geo::GeoUtils::EARTH_RADIUS_KM));
-
-    latRotation.makeRotate(-float(myCoordenates.getLatitude()), 1, 0, 0);
-    longRotation.makeRotate(float(myCoordenates.getLongitude()), 0, 1, 0);
-    myPosition = latRotation * longRotation * center;
-
+    while(ofGetElapsedTimeMillis() > gpsCalcTimer){
+        ofQuaternion latRotation;
+        ofQuaternion longRotation;
+        latRotation.makeRotate(-float(myCoordinates.getLatitude()), 1, 0, 0);
+        longRotation.makeRotate(float(myCoordinates.getLongitude()), 0, 1, 0);
+        ofVec3f center = ofVec3f(0,0, float(myCoordinates.getElevation() / 1000 + ofx::Geo::GeoUtils::EARTH_RADIUS_KM));
+        myPosition = latRotation * longRotation * center;
+        gpsCalcTimer = ofGetElapsedTimeMillis() + 500;
+    }
     return myPosition;
 }
 
 //register GPS event
 void manager::onGPSUpdate(const ofxGPS::LocationData& data) {
-    myCoordenates = ofx::Geo::ElevatedCoordinate(data.latitude, data.longitude, data.altitude);
+    myCoordinates = ofx::Geo::ElevatedCoordinate(data.latitude, data.longitude, data.altitude);
 }
 
 void manager::load() {
@@ -69,7 +72,6 @@ void manager::load() {
         int active = xml.getAttribute("satellite", "active", active, i);
         string id = xml.getAttribute("satellite", "id", id, i);
         if(active == 1) {
-            ofLog() << "found active: " << active << " / id: " << id;
             add(id);
         }
     }
@@ -91,14 +93,12 @@ void manager::add(string id){
                 if(loadedSat == id) {
                     xml.setAttribute("satellite", "active", "1", i);
                     foundAtXml = true;
-                    ofLog() << "satellite activated " + id;
                 }
             }
             if(!foundAtXml) {
                 xml.addTag("satellite");
                 xml.setAttribute("satellite", "id", id, total);
                 xml.setAttribute("satellite", "active", "1", total);
-                ofLog() << "satellite tag created and activated " + id;
             }
             globals::satellitesIds.push_back(id);
             object temp;
@@ -120,7 +120,6 @@ void manager::remove(string id){
         string loadedSatId = xml.getAttribute("satellite", "id", id, i);
         if(loadedSatId == id) {
             xml.setAttribute("satellite", "active", 0, i);
-            ofLog() << "satellite deactivated " + id;
         }
         if(objects[i].id == id) objects.erase(objects.begin() + i);
     }

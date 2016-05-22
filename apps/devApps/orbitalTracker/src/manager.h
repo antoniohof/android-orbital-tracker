@@ -15,12 +15,15 @@ class manager
         //gps
         ofxGPS gps;
         void onGPSUpdate(const ofxGPS::LocationData& data);
-        ofx::Geo::ElevatedCoordinate myCoordenates;
+        ofx::Geo::ElevatedCoordinate myCoordinates;
         ofVec3f getMyPosition();
+        ofVec3f myPosition;
+        unsigned long long gpsCalcTimer;
 
         //update TLE from internet
         TLEController * TLE;
         unsigned long long updateTimer;
+        bool retrying;
 
         //objects
         vector<object> objects;

@@ -233,21 +233,21 @@ public:
         color.matrix.selected.button = hex(0x60B1CC);
         color.graph.fills = hex(0x596872);
 
-        font.size *= 2;
-        stripe.width *= 2;
+        font.size *= 3;
+        stripe.width *= 3;
         layout.width = 600;
-        layout.height *= 2;
-        layout.padding *= 2;
-        layout.vMargin *= 2;
-        layout.iconSize *= 2;
+        layout.height *= 3;
+        layout.padding *= 3;
+        layout.vMargin *= 3;
+        layout.iconSize *= 3;
         layout.labelWidth = 190;
-        layout.graph.height *=2;
-        layout.pad2d.height *=2;
-        layout.pad2d.ballSize *=2;
-        layout.pad2d.lineWeight *=2;
-        layout.matrix.height *=2;
+        layout.graph.height *=3;
+        layout.pad2d.height *=3;
+        layout.pad2d.ballSize *=3;
+        layout.pad2d.lineWeight *=3;
+        layout.matrix.height *=3;
         layout.matrix.buttonSize = 47;
-        layout.textInput.highlightPadding *= 2;
+        layout.textInput.highlightPadding *= 3;
 
         init();
     }

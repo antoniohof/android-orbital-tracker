@@ -6,6 +6,10 @@ class TLEController : public ofThread{
 
 public:
 
+    TLEController() {
+        ofLog() << "TLE controller initialized!";
+    }
+
     vector<ofx::Satellite::Satellite> data;
     vector<ofx::Satellite::Satellite> stations;
     vector<ofx::Satellite::Satellite> visuals;
@@ -13,17 +17,12 @@ public:
 
     //map container of position on globe and coordinate
     map<string, pair<ofVec3f, ofVec3f>> info;
-    unsigned long long calcTimer = ofGetElapsedTimeMillis();
-
-    bool bLoaded;
-
-    TLEController(){
-        ofLog() << "TLE controller initialized!";
-    }
+    bool bLoaded = false;
+    bool bServersOnline = false;
+    unsigned long long updateTimer = ofGetElapsedTimeMillis();
 
     map<string, pair<ofVec3f, ofVec3f>> update() {
-        //info.clear();
-        while(!isThreadRunning() && ofGetElapsedTimeMillis() > calcTimer) {
+        while(!isThreadRunning() && ofGetElapsedTimeMillis() > updateTimer) {
             for (int i = 0; i < data.size(); i++) {
                 if(ofContains(globals::satellitesIds, data[i].Name())){
                     //calculation to resolve satellite location on globe
@@ -36,8 +35,7 @@ public:
                     ofx::Geo::ElevatedCoordinate coordinates;
                     Poco::DateTime timeNow;
 
-                    coordinates = ofx::Satellite::Utils::toElevatedCoordinate(
-                            data[i].find(timeNow).ToGeodetic());
+                    coordinates = ofx::Satellite::Utils::toElevatedCoordinate(data[i].find(timeNow).ToGeodetic());
 
                     latitude = coordinates.getLatitude();
                     longitude = coordinates.getLongitude();
@@ -46,15 +44,14 @@ public:
                     latitudeRotation.makeRotate(float(-latitude), 1, 0, 0);
                     longitudeRotation.makeRotate(float(longitude), 0, 1, 0);
 
-                    ofVec3f center = ofVec3f(0, 0, float(elevation / 1000 +
-                                                         ofx::Geo::GeoUtils::EARTH_RADIUS_KM));
+                    ofVec3f center = ofVec3f(0, 0, float(elevation / 1000 + ofx::Geo::GeoUtils::EARTH_RADIUS_KM));
 
                     position = latitudeRotation * longitudeRotation * center;
                     ofVec3f coord = ofVec3f(longitude, latitude, elevation);
                     info[data[i].Name()] = make_pair(position, coord);
                 }
             }
-            calcTimer = ofGetElapsedTimeMillis() + 500;
+            updateTimer = ofGetElapsedTimeMillis() + 500;
         }
         return info;
     }
@@ -90,14 +87,15 @@ public:
            TLElist.append(responseVisuals.data);
            //TLEData.append(planetLabs.data);
 
-           if (TLElist.size()>1 && 200 == responseGps.status && 200 == responseStations.status && 200 == responseVisuals.status) {
+           if (TLElist.size()>0 && 200 == responseGps.status && 200 == responseStations.status && 200 == responseVisuals.status) {
                ofLog() << "TLE servers online and up to date!";
-               data = ofx::Satellite::Utils::loadTLEFromBuffer(TLElist);
                bLoaded = true;
+               bServersOnline = true;
+               data = ofx::Satellite::Utils::loadTLEFromBuffer(TLElist);
            }
            else {
-               ofLogError() << "TLE servers error";
-               bLoaded = false;
+               ofLogError() << "TLE servers offline";
+               bServersOnline = false;
            }
            unlock();
            stopThread();

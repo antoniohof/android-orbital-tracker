@@ -4,8 +4,8 @@
 #include "ofxAndroid.h"
 #include "manager.h"
 #include "ofxSunCalc.h"
-#include "ofxDatGui.h"
 #include "ofxTweenzor.h"
+#include "UI.h"
 
 class ofApp : public ofxAndroidApp{
 	
@@ -25,7 +25,7 @@ public:
 	void touchDoubleTap(int x, int y, int id);
 	void touchCancelled(int x, int y, int id);
 	void swipe(ofxAndroidSwipeDir swipeDir, int id);
-	void scaleBegin(ofxAndroidScaleEventArgs& scale);
+	void scale(ofxAndroidScaleEventArgs& scale);
 
 	void pause();
 	void stop();
@@ -39,10 +39,6 @@ public:
 	//objects manager
 	manager Manager;
 
-	//background
-	ofImage backgroundMap;
-	ofSpherePrimitive backgroundSphere;
-
 	//earth
 	ofSpherePrimitive earthSphere;
 	ofImage colorMap;
@@ -50,9 +46,13 @@ public:
 	float rot;
 	ofEasyCam cam;
 
-	//sun / light
+	//background
+	ofImage backgroundMap;
+	ofSpherePrimitive backgroundSphere;
+
+	//sunlight
 	ofLight sun;
-	void calcSunPosition();
+	void updateSunPosition();
 	unsigned long long sunTimer;
 	cSunCoordinates sunCalc;
 	ofVec2f sunCoordinates;
@@ -61,24 +61,6 @@ public:
 	float zoomDistance;
 	float previousDistance;
 
-	//interface header
-	void loadHeader();
-	bool headerLoaded;
-	ofxDatGui * header;
-
-	//menus
-	void loadMenus();
-	bool menusLoaded;
-
-	//scroll lists
-	ofxDatGuiScrollView* stationsList;
-
-	//scroll buttons
-	ofxDatGuiButton* scrollUp;
-	ofxDatGuiButton *scrollDown;
-
-	void onDropdownEvent(ofxDatGuiDropdownEvent e);
-	void onButtonEvent(ofxDatGuiButtonEvent e);
-	void onScrollListEvent(ofxDatGuiScrollViewEvent e);
-
+	//UI
+	UI interface;
 };

@@ -131,13 +131,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src/arm7/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/arm7/jni" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/arm7/renderscript" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testArm7/res" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testArm7/resources" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testArm7/assets" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testArm7/aidl" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testArm7/java" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testArm7/jni" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/testArm7/rs" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTestArm7/res" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTestArm7/resources" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTestArm7/assets" type="java-test-resource" />
@@ -145,6 +138,13 @@
       <sourceFolder url="file://$MODULE_DIR$/src/androidTestArm7/java" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTestArm7/jni" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/androidTestArm7/rs" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testArm7/res" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testArm7/resources" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testArm7/assets" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testArm7/aidl" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testArm7/java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testArm7/jni" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/testArm7/rs" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/debug/res" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/debug/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/debug/assets" type="java-resource" />

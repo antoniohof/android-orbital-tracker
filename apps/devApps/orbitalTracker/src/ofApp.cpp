@@ -15,7 +15,7 @@ void ofApp::setup(){
 	//earth sphere
 	rot = 0;
 	scaler = 300 / ofx::Geo::GeoUtils::EARTH_RADIUS_KM;
-	if(colorMap.load("images/color_map_1024.jpg")) ofLog() << "earth image loaded!"; else ofLogError() << "failed to load earth image!";
+	if(colorMap.load("images/color_map_1024.jpg")) ofLogVerbose() << "earth image loaded!"; else ofLogError() << "failed to load earth image!";
 	earthSphere.set(ofx::Geo::GeoUtils::EARTH_RADIUS_KM, 36);
 	ofQuaternion quat;
 	quat.makeRotate(180, 0, 1, 0);
@@ -23,7 +23,7 @@ void ofApp::setup(){
 	earthSphere.mapTexCoords(0, colorMap.getTexture().getTextureData().tex_u, colorMap.getTexture().getTextureData().tex_t, 0);
 
 	//background sphere
-	if(backgroundMap.load("images/starbackground.png")) ofLog() << "background image loaded!"; else ofLogError() << "failed to load background image!";
+	if(backgroundMap.load("images/starbackground.png")) ofLogVerbose() << "background image loaded!"; else ofLogError() << "failed to load background image!";
 	backgroundSphere.set(ofx::Geo::GeoUtils::EARTH_RADIUS_KM*30, 36);
 	backgroundSphere.mapTexCoords(0, backgroundMap.getTexture().getTextureData().tex_u, backgroundMap.getTexture().getTextureData().tex_t, 0);
 
@@ -38,7 +38,7 @@ void ofApp::setup(){
 	Manager.setup();
 
 	//zoom
-	ofAddListener(ofxAndroidEvents().scaleBegin ,this,&ofApp::scaleBegin);
+	ofAddListener(ofxAndroidEvents().scaleBegin ,this,&ofApp::scale);
     previousDistance = 0;
     zoomDistance = 1000;
 
@@ -47,37 +47,20 @@ void ofApp::setup(){
     sun.setSpotlight(40, 5);
 	sunTimer = ofGetElapsedTimeMillis()+500;
 
-	//interface
-    headerLoaded = false;
-	menusLoaded = false;
-	loadHeader();
+	//UI
+	interface.setup(&Manager);
 }
 
 //--------------------------------------------------------------
 void ofApp::update() {
-
 	Tweenzor::update(ofGetElapsedTimeMillis());
-
 	Manager.update();
+	interface.update();
 
 	if (ofGetElapsedTimeMillis() > sunTimer) {
-        calcSunPosition();
+        updateSunPosition();
         sunTimer = ofGetElapsedTimeMillis() + 5000;
-        if(headerLoaded) {
-            if (ofToString(Manager.myCoordenates) == "0,0,0") {
-                header->getTextInput("Lat/Long/Alt:")->setText("GPS DISABLED");
-            } else header->getTextInput("Lat/Long/Alt:")->setText(ofToString(Manager.myCoordenates));
-        }
     }
-
-    if (headerLoaded)header->update();
-
-    if (menusLoaded) {
-		stationsList->update();
-		scrollUp->update();
-		scrollDown->update();
-	}else loadMenus();
-
 }
 
 //--------------------------------------------------------------
@@ -111,7 +94,7 @@ void ofApp::draw(){
 		sun.draw();
 		sun.disable();
 
-		//bg
+		//background
 		backgroundMap.bind();
 			backgroundSphere.draw();
 		backgroundMap.unbind();
@@ -125,16 +108,12 @@ void ofApp::draw(){
 	ofDisableBlendMode();
 	ofDisableLighting();
 
-    if(headerLoaded) header->draw();
 
-	if(menusLoaded){
-		stationsList->draw();
-		scrollUp->draw();
-		scrollDown->draw();
-	}
+	//UI
+	interface.draw();
 }
 
-void ofApp::calcSunPosition(){
+void ofApp::updateSunPosition(){
     Poco::DateTime now; //UTC
 	ofLogVerbose() << "updating sun position :";
 	ofLogVerbose() << now.day() << " " << now.month() << " " << now.year() << " " << now.hour() << " " << now.minute();
@@ -148,8 +127,8 @@ void ofApp::calcSunPosition(){
 	ctime.dSeconds = now.second();
 
 	cLocation location;
-	location.dLatitude = Manager.myCoordenates.getLatitude();
-	location.dLongitude = Manager.myCoordenates.getLongitude();
+	location.dLatitude = Manager.myCoordinates.getLatitude();
+	location.dLongitude = Manager.myCoordinates.getLongitude();
 	ofVec2f data = sunpos(ctime, location, &sunCalc);
 
     double angle = 15 * (ctime.dHours + ctime.dMinutes/60);  //convert time to angle
@@ -159,7 +138,7 @@ void ofApp::calcSunPosition(){
 	ofLogVerbose() << "sun coordinates: longitude " << sunCoordinates.x << " / latitude:" << sunCoordinates.y;
 }
 
-void ofApp::scaleBegin(ofxAndroidScaleEventArgs& _distance){
+void ofApp::scale(ofxAndroidScaleEventArgs& _distance){
     float distance = _distance.getCurrentSpan();
     if(previousDistance != distance) {
         if (distance > previousDistance) zoomDistance = zoomDistance - 30;
@@ -168,77 +147,6 @@ void ofApp::scaleBegin(ofxAndroidScaleEventArgs& _distance){
     previousDistance = distance;
 }
 
-
-void ofApp::loadHeader() {
-	ofLog() << "loading header...";
-
-	header = new ofxDatGui(ofxDatGuiAnchor::TOP_LEFT);
-	header->setTheme(new ofxDatGuiThemeOrbital());
-	header->setPosition(2, 2);
-	header->setWidth(ofGetWidth());
-	header->addHeader("Orbital Tracker", false);
-	header->setLabelAlignment(ofxDatGuiAlignment::CENTER);
-	header->addTextInput("Lat/Long/Alt:", "INITIALIZING...");
-
-	headerLoaded = true;
-	ofLog() << "done!";
-}
-
-void ofApp::loadMenus(){
-	if(Manager.TLE->bLoaded) {
-		ofLog() << "loading menus...";
-
-		//buttons
-		scrollUp = new ofxDatGuiButton("up");
-		scrollUp->setTheme(new ofxDatGuiThemeOrbital());
-		scrollUp->setWidth(ofGetWidth() / 8);
-		scrollUp->setPosition(2, 110);
-
-		scrollDown = new ofxDatGuiButton("down");
-		scrollDown->setTheme(new ofxDatGuiThemeOrbital());
-		scrollDown->setWidth(ofGetWidth() / 8);
-		scrollDown->setPosition(100, 110);
-		scrollUp->onButtonEvent(this, &ofApp::onButtonEvent);
-		scrollDown->onButtonEvent(this, &ofApp::onButtonEvent);
-
-		stationsList = new ofxDatGuiScrollView("stations", 16);
-		stationsList->setTheme(new ofxDatGuiThemeOrbital());
-		stationsList->setWidth(ofGetWidth() / 4);
-		stationsList->setPosition(2, 200);
-
-		for (int i = 1; i < Manager.TLE->stations.size(); i++) {
-			string station = Manager.TLE->stations[i].Name();
-			stationsList->add(station);
-			if (ofContains(globals::satellitesIds, station)) {
-				stationsList->get(station)->setStripeColor(ofColor::blue);
-			} else stationsList->get(station)->setStripeColor(ofColor::grey);
-		}
-		stationsList->onScrollViewEvent(this, &ofApp::onScrollListEvent);
-		ofLog() << "done!";
-
-		menusLoaded = true;
-	}
-}
-
-
-void ofApp::onButtonEvent(ofxDatGuiButtonEvent e){
-    if(e.target->getName() == "up"){
-		stationsList->scroll(10);
-    }else{
-		stationsList->scroll(-10);
-    }
-}
-
-void ofApp::onScrollListEvent(ofxDatGuiScrollViewEvent e){
-	string id = e.target->getName();
-	if (ofContains(globals::satellitesIds, id)) {
-		stationsList->get(id)->setStripeColor(ofColor::grey);
-		Manager.remove(id);
-	} else {
-		stationsList->get(id)->setStripeColor(ofColor::blue);
-		Manager.add(id);
-	}
-}
 
 //--------------------------------------------------------------
 void ofApp::keyPressed  (int key){ 

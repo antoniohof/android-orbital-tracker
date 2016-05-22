@@ -1,55 +1,44 @@
-#include "ofMain.h"
 #include "manager.h"
 
 
 void manager::setup(){
+    TLE = new TLEController();
+    load();
+
     //gps
     ofLog() << "initializing GPS...";
-    if (gps.startLocation()) ofLog() << "GPS initialized!"; else ofLogError() << "GPS initialization failure";
+    if (gps.startLocation()) ofLog() << "GPS initializesd!"; else ofLogError() << "GPS initialization failure";
     ofAddListener(ofxGPS::newLocationDataEvent, this, &manager::onGPSUpdate);
 
-    //load saved satellites on XML
-    loadSaved();
-
     //update timer
-    updateNextTime = ofGetElapsedTimeMillis();
+    updateTimer = ofGetElapsedTimeMillis();
 }
 
 void manager::update(){
+
+    for(int i = 0; i<objects.size(); i++) objects[i].update();
+
     //update satellite internet data every 5 minutes - but if not connected try every 1 s
-    if (!satellites.isThreadRunning() && ofGetElapsedTimeMillis() > updateNextTime) {
-        int total = satellites.TLE.size();
-        switch (total){
-            case 0:
-                updateNextTime = ofGetElapsedTimeMillis() + 1000;
+    if (!TLE->isThreadRunning() && ofGetElapsedTimeMillis() > updateTimer) {
+        switch (TLE->bLoaded){
+            case false:
+                updateTimer = ofGetElapsedTimeMillis() + 1000;
                 break;
             default:
-                updateNextTime = ofGetElapsedTimeMillis() + 300000;
+                updateTimer = ofGetElapsedTimeMillis() + 300000;
         }
-        satellites.startThread();
+        TLE->startThread();
     }
 }
 
 void manager::draw(){
-    ofFill();
-    if(!satellites.isThreadRunning()) {
-        for (int i = 0; i < globals::satellitesIds.size(); i++) {
-            ofVec3f position = satellites.updatePosition()[globals::satellitesIds[i]];
-            if (position != ofVec3f(0, 0, 0)) {
-                ofSetColor(255, 0, 0);
-                ofDrawSphere(position, 80);
-
-                ofSetColor(255);
-                ofDrawBitmapString(globals::satellitesIds[i], position);
-            }
-        }
-    }
+    for(int i = 0; i<objects.size(); i++) objects[i].draw();
 
     //draw my position
     ofSetColor(0,255,0);
     if(ofToString(myCoordenates) != "0,0,0") ofDrawSphere(getMyPosition(), 80);
-}
 
+}
 
 ofVec3f manager::getMyPosition(){
     ofVec3f myPosition;
@@ -70,7 +59,7 @@ void manager::onGPSUpdate(const ofxGPS::LocationData& data) {
     myCoordenates = ofx::Geo::ElevatedCoordinate(data.latitude, data.longitude, data.altitude);
 }
 
-void manager::loadSaved() {
+void manager::load() {
     ofxXmlSettings xml;
     xml.load("satellites.xml");
     xml.pushTag("root");
@@ -112,6 +101,9 @@ void manager::add(string id){
                 ofLog() << "satellite tag created and activated " + id;
             }
             globals::satellitesIds.push_back(id);
+            object temp;
+            temp.setup(id, TLE);
+            objects.push_back(temp);
             ofLog() << "satellite loaded: " << id;
         xml.popTag();
 
@@ -130,8 +122,10 @@ void manager::remove(string id){
             xml.setAttribute("satellite", "active", 0, i);
             ofLog() << "satellite deactivated " + id;
         }
+        if(objects[i].id == id) objects.erase(objects.begin() + i);
     }
     globals::satellitesIds.erase(std::remove(globals::satellitesIds.begin(), globals::satellitesIds.end(), id), globals::satellitesIds.end());
+
     ofLog() << "satellite removed: " << id;
     xml.popTag();
 

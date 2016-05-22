@@ -6,45 +6,57 @@ class TLEController : public ofThread{
 
 public:
 
-    vector<ofx::Satellite::Satellite> TLE;
+    vector<ofx::Satellite::Satellite> data;
     vector<ofx::Satellite::Satellite> stations;
     vector<ofx::Satellite::Satellite> visuals;
     vector<ofx::Satellite::Satellite> gps;
-    map<string, ofVec3f> sat;
+
+    //map container of position on globe and coordinate
+    map<string, pair<ofVec3f, ofVec3f>> info;
+    unsigned long long calcTimer = ofGetElapsedTimeMillis();
+
+    bool bLoaded;
 
     TLEController(){
         ofLog() << "TLE controller initialized!";
     }
 
-    map<string, ofVec3f> updatePosition() {
-        sat.clear();
-        while(!isThreadRunning()) {
-            for (int i = 0; i < TLE.size(); i++) {
-                if(ofContains(globals::satellitesIds, TLE[i].Name())){
+    map<string, pair<ofVec3f, ofVec3f>> update() {
+        //info.clear();
+        while(!isThreadRunning() && ofGetElapsedTimeMillis() > calcTimer) {
+            for (int i = 0; i < data.size(); i++) {
+                if(ofContains(globals::satellitesIds, data[i].Name())){
                     //calculation to resolve satellite location on globe
                     ofVec3f position;
-
-                    ofQuaternion latRot;
-                    ofQuaternion longRot;
-                    ofx::Geo::ElevatedCoordinate coordenates;
+                    double longitude;
+                    double latitude;
+                    double elevation;
+                    ofQuaternion latitudeRotation;
+                    ofQuaternion longitudeRotation;
+                    ofx::Geo::ElevatedCoordinate coordinates;
                     Poco::DateTime timeNow;
 
-                    coordenates = ofx::Satellite::Utils::toElevatedCoordinate(
-                            TLE[i].find(timeNow).ToGeodetic());
+                    coordinates = ofx::Satellite::Utils::toElevatedCoordinate(
+                            data[i].find(timeNow).ToGeodetic());
 
-                    latRot.makeRotate(float(-coordenates.getLatitude()), 1, 0, 0);
-                    longRot.makeRotate(float(coordenates.getLongitude()), 0, 1, 0);
+                    latitude = coordinates.getLatitude();
+                    longitude = coordinates.getLongitude();
+                    elevation = coordinates.getElevation();
 
-                    ofVec3f center = ofVec3f(0, 0, float(coordenates.getElevation() / 1000 +
+                    latitudeRotation.makeRotate(float(-latitude), 1, 0, 0);
+                    longitudeRotation.makeRotate(float(longitude), 0, 1, 0);
+
+                    ofVec3f center = ofVec3f(0, 0, float(elevation / 1000 +
                                                          ofx::Geo::GeoUtils::EARTH_RADIUS_KM));
 
-                    position = latRot * longRot * center;
-
-                    sat[TLE[i].Name()] = position;
+                    position = latitudeRotation * longitudeRotation * center;
+                    ofVec3f coord = ofVec3f(longitude, latitude, elevation);
+                    info[data[i].Name()] = make_pair(position, coord);
                 }
             }
-            return sat;
+            calcTimer = ofGetElapsedTimeMillis() + 500;
         }
+        return info;
     }
 
 
@@ -72,18 +84,20 @@ public:
            //planetLabs = ofLoadURL("http://ephemerides.planet-labs.com/planet_mc.tle");
 
            //TLE
-           ofBuffer allTLE;
-           allTLE = responseStations.data;
-           allTLE.append(responseGps.data);
-           allTLE.append(responseVisuals.data);
+           ofBuffer TLElist;
+           TLElist = responseStations.data;
+           TLElist.append(responseGps.data);
+           TLElist.append(responseVisuals.data);
            //TLEData.append(planetLabs.data);
 
-           if (allTLE.size()>1) {
+           if (TLElist.size()>1 && 200 == responseGps.status && 200 == responseStations.status && 200 == responseVisuals.status) {
                ofLog() << "TLE servers online and up to date!";
-               TLE = ofx::Satellite::Utils::loadTLEFromBuffer(allTLE);
+               data = ofx::Satellite::Utils::loadTLEFromBuffer(TLElist);
+               bLoaded = true;
            }
            else {
                ofLogError() << "TLE servers error";
+               bLoaded = false;
            }
            unlock();
            stopThread();

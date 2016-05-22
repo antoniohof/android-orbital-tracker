@@ -5,7 +5,7 @@
 #include "manager.h"
 #include "ofxSunCalc.h"
 #include "ofxDatGui.h"
-
+#include "ofxTweenzor.h"
 
 class ofApp : public ofxAndroidApp{
 	
@@ -36,8 +36,8 @@ public:
 	void okPressed();
 	void cancelPressed();
 
-	//satellites and update timer
-	manager satelliteManager;
+	//objects manager
+	manager Manager;
 
 	//background
 	ofImage backgroundMap;

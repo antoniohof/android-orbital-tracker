@@ -10,6 +10,8 @@ void ofApp::setup(){
 	ofEnableLighting();
 	ofSetFullscreen(true);
 
+	Tweenzor::init();
+
 	//earth sphere
 	rot = 0;
 	scaler = 300 / ofx::Geo::GeoUtils::EARTH_RADIUS_KM;
@@ -32,11 +34,8 @@ void ofApp::setup(){
 	cam.setFarClip(100000);
 	ofSetDrawBitmapMode(OF_BITMAPMODE_MODEL_BILLBOARD);
 
-	//satellites names
-	//font.load("fonts/calibri.ttf", 250, true, true);
-
 	//initialize manager
-	satelliteManager.setup();
+	Manager.setup();
 
 	//zoom
 	ofAddListener(ofxAndroidEvents().scaleBegin ,this,&ofApp::scaleBegin);
@@ -57,15 +56,17 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 void ofApp::update() {
 
-	satelliteManager.update();
+	Tweenzor::update(ofGetElapsedTimeMillis());
+
+	Manager.update();
 
 	if (ofGetElapsedTimeMillis() > sunTimer) {
         calcSunPosition();
         sunTimer = ofGetElapsedTimeMillis() + 5000;
         if(headerLoaded) {
-            if (ofToString(satelliteManager.myCoordenates) == "0,0,0") {
+            if (ofToString(Manager.myCoordenates) == "0,0,0") {
                 header->getTextInput("Lat/Long/Alt:")->setText("GPS DISABLED");
-            } else header->getTextInput("Lat/Long/Alt:")->setText(ofToString(satelliteManager.myCoordenates));
+            } else header->getTextInput("Lat/Long/Alt:")->setText(ofToString(Manager.myCoordenates));
         }
     }
 
@@ -96,28 +97,25 @@ void ofApp::draw(){
 	cam.begin();
 
 	ofPushMatrix();
-		//rotate earth
+		//earth
 		//rot += 1;
 		//ofRotate(rot, 0, 1, 0);
 		ofScale(scaler, scaler, scaler);
-
 		sun.enable();
 		sun.orbit(sunCoordinates.x, sunCoordinates.y, earthSphere.getRadius(), earthSphere.getGlobalPosition());
 		ofSetColor(255);
 		colorMap.bind();
 			earthSphere.draw();
 		colorMap.unbind();
-		satelliteManager.draw();
+		Manager.draw();
 		sun.draw();
 		sun.disable();
-	ofPopMatrix();
 
-	ofPushMatrix();
-		ofScale(scaler, scaler, scaler);
-		ofSetColor(255,255,255,180);
+		//bg
 		backgroundMap.bind();
 			backgroundSphere.draw();
 		backgroundMap.unbind();
+
 	ofPopMatrix();
 
 	cam.end();
@@ -138,8 +136,8 @@ void ofApp::draw(){
 
 void ofApp::calcSunPosition(){
     Poco::DateTime now; //UTC
-	ofLog() << "updating sun position :";
-	ofLog() << now.day() << " " << now.month() << " " << now.year() << " " << now.hour() << " " << now.minute();
+	ofLogVerbose() << "updating sun position :";
+	ofLogVerbose() << now.day() << " " << now.month() << " " << now.year() << " " << now.hour() << " " << now.minute();
 
 	cTime ctime;
 	ctime.iYear = now.year();
@@ -150,15 +148,15 @@ void ofApp::calcSunPosition(){
 	ctime.dSeconds = now.second();
 
 	cLocation location;
-	location.dLatitude = satelliteManager.myCoordenates.getLatitude();
-	location.dLongitude = satelliteManager.myCoordenates.getLongitude();
+	location.dLatitude = Manager.myCoordenates.getLatitude();
+	location.dLongitude = Manager.myCoordenates.getLongitude();
 	ofVec2f data = sunpos(ctime, location, &sunCalc);
 
     double angle = 15 * (ctime.dHours + ctime.dMinutes/60);  //convert time to angle
     sunCoordinates.x = ofMap(angle, 0, 360, 180, -180);      //map angle to longitude
 	sunCoordinates.y =  -data.y *180/PI;	                 //inclination of earth - convert from rad to degrees and invert
 
-    ofLog() << "sun coordinates: longitude " << sunCoordinates.x << " / latitude:" << sunCoordinates.y;
+	ofLogVerbose() << "sun coordinates: longitude " << sunCoordinates.x << " / latitude:" << sunCoordinates.y;
 }
 
 void ofApp::scaleBegin(ofxAndroidScaleEventArgs& _distance){
@@ -187,7 +185,7 @@ void ofApp::loadHeader() {
 }
 
 void ofApp::loadMenus(){
-	if(satelliteManager.satellites.TLE.size()>=1) {
+	if(Manager.TLE->bLoaded) {
 		ofLog() << "loading menus...";
 
 		//buttons
@@ -208,8 +206,8 @@ void ofApp::loadMenus(){
 		stationsList->setWidth(ofGetWidth() / 4);
 		stationsList->setPosition(2, 200);
 
-		for (int i = 1; i < satelliteManager.satellites.stations.size(); i++) {
-			string station = satelliteManager.satellites.stations[i].Name();
+		for (int i = 1; i < Manager.TLE->stations.size(); i++) {
+			string station = Manager.TLE->stations[i].Name();
 			stationsList->add(station);
 			if (ofContains(globals::satellitesIds, station)) {
 				stationsList->get(station)->setStripeColor(ofColor::blue);
@@ -235,10 +233,10 @@ void ofApp::onScrollListEvent(ofxDatGuiScrollViewEvent e){
 	string id = e.target->getName();
 	if (ofContains(globals::satellitesIds, id)) {
 		stationsList->get(id)->setStripeColor(ofColor::grey);
-		satelliteManager.remove(id);
+		Manager.remove(id);
 	} else {
 		stationsList->get(id)->setStripeColor(ofColor::blue);
-		satelliteManager.add(id);
+		Manager.add(id);
 	}
 }
 

@@ -9,3 +9,4 @@ ofxSatellite
 ofxGPS
 ofxSunCalc
 ofxDatGui
+ofxTweenzor

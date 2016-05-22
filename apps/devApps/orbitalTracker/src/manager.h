@@ -3,7 +3,7 @@
 #include "ofMain.h"
 #include "ofxAndroid.h"
 #include "ofxGPS.h"
-#include "TLEController.h"
+#include "object.h"
 
 class manager
 {
@@ -18,12 +18,13 @@ class manager
         ofx::Geo::ElevatedCoordinate myCoordenates;
         ofVec3f getMyPosition();
 
-        //update internet TLEs timer
-        unsigned long long updateNextTime;
+        //update TLE from internet
+        TLEController * TLE;
+        unsigned long long updateTimer;
 
-        //satellite
-        TLEController satellites;
-        void loadSaved();
+        //objects
+        vector<object> objects;
+        void load();
         void add(string id);
         void remove(string id);
 };

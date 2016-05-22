@@ -85,6 +85,12 @@
     <content url="file://$MODULE_DIR$/../../../addons/ofxTime/src">
       <sourceFolder url="file://$MODULE_DIR$/../../../addons/ofxTime/src" isTestSource="false" />
     </content>
+    <content url="file://$MODULE_DIR$/../../../addons/ofxTweenzor/libs">
+      <sourceFolder url="file://$MODULE_DIR$/../../../addons/ofxTweenzor/libs" isTestSource="false" />
+    </content>
+    <content url="file://$MODULE_DIR$/../../../addons/ofxTweenzor/src">
+      <sourceFolder url="file://$MODULE_DIR$/../../../addons/ofxTweenzor/src" isTestSource="false" />
+    </content>
     <content url="file://$MODULE_DIR$/../../../addons/ofxXmlSettings/libs">
       <sourceFolder url="file://$MODULE_DIR$/../../../addons/ofxXmlSettings/libs" isTestSource="false" />
     </content>

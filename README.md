@@ -7,4 +7,6 @@ Precision is up to 100 meters square.
 0.0.1
 
 ### Build on
+* [Android Studio] - Android NDK r10e + Gradle Experimental (for auto-complete support)
 * [openFrameworks] - C++ toolkit
+* [ofxSatellite] as core addon by bakercp (thanks!) https://github.com/bakercp/ofxSatellite

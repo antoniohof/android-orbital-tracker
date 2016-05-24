@@ -13,24 +13,25 @@ void manager::setup(){
     gpsCalcTimer = ofGetElapsedTimeMillis();
 
     //update timer
-    updateTimer = ofGetElapsedTimeMillis();
-    retrying = false;
+    updateTimer = ofGetElapsedTimeMillis() + 5000;
+    TLE->startThread();
 }
 
 void manager::update(){
     for(int i = 0; i<objects.size(); i++) objects[i].update();
 
-    //update satellite internet data every 2 minutes - but if not connected try every 10 s
+    //update every 40s except when not connected
     if (!TLE->isThreadRunning() && ofGetElapsedTimeMillis() > updateTimer) {
-        if(!TLE->bServersOnline || !ofxAndroidIsOnline()) {
-            updateTimer = ofGetElapsedTimeMillis() + 10000;
-            TLE->startThread();
-            retrying = true;
-        }
-        else{
-            if(!retrying) TLE->startThread();
-            retrying = false;
-            updateTimer = ofGetElapsedTimeMillis() + 120000;
+        bool online = TLE->bServersOnline && ofxAndroidIsOnline();
+        int wait = 40000;
+        switch (online) {
+            case false :
+                if(!TLE->bLoaded) ofxAndroidAlertBox("cannot reach TLE servers");
+                wait = 10000;
+            default :
+                TLE->startThread();
+                updateTimer = ofGetElapsedTimeMillis() + wait;
+                break;
         }
     }
 }

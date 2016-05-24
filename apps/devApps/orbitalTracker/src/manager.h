@@ -23,7 +23,7 @@ class manager
         //update TLE from internet
         TLEController * TLE;
         unsigned long long updateTimer;
-        bool retrying;
+        int alertCounter;
 
         //objects
         vector<object> objects;

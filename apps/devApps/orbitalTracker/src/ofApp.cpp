@@ -111,6 +111,7 @@ void ofApp::draw(){
 
 	//UI
 	interface.draw();
+
 }
 
 void ofApp::updateSunPosition(){

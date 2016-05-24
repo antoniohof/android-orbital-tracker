@@ -8,6 +8,8 @@ void UI::setup(manager * Manager){
     bMenuLoaded = false;
     loadHeader();
 
+    //warning
+    ofxAndroidProgressBox("loading objects...");
 }
 void UI::update() {
     if(bHeaderLoaded) {
@@ -57,20 +59,20 @@ void UI::loadMenus(){
         //buttons
         scrollUp = new ofxDatGuiButton("up");
         scrollUp->setTheme(new ofxDatGuiThemeOrbital());
-        scrollUp->setWidth(ofGetWidth() / 8);
-        scrollUp->setPosition(2, 110);
+        scrollUp->setWidth(ofGetWidth() / 6);
+        scrollUp->setPosition(2, 170);
 
         scrollDown = new ofxDatGuiButton("down");
         scrollDown->setTheme(new ofxDatGuiThemeOrbital());
-        scrollDown->setWidth(ofGetWidth() / 8);
-        scrollDown->setPosition(100, 110);
+        scrollDown->setWidth(ofGetWidth() / 6);
+        scrollDown->setPosition(150, 170);
         scrollUp->onButtonEvent(this, &UI::onButtonEvent);
         scrollDown->onButtonEvent(this, &UI::onButtonEvent);
 
-        stationsList = new ofxDatGuiScrollView("stations", 16);
+        stationsList = new ofxDatGuiScrollView("stations", 10);
         stationsList->setTheme(new ofxDatGuiThemeOrbital());
         stationsList->setWidth(ofGetWidth() / 3);
-        stationsList->setPosition(2, 200);
+        stationsList->setPosition(2, 300);
 
         for (int i = 1; i < Manager->TLE->stations.size(); i++) {
             string station = Manager->TLE->stations[i].Name();
@@ -83,6 +85,7 @@ void UI::loadMenus(){
         ofLog() << "done!";
 
         bMenuLoaded = true;
+        ofxAndroidDismissProgressBox(0);
     }
 }
 

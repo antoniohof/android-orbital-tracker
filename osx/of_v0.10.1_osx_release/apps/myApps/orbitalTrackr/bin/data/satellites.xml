@@ -1,0 +1,24 @@
+<root>
+    <satellite id="ISS (ZARYA)" active="1" />
+    <satellite id="ALTAIR PATHFINDER" active="0" />
+    <satellite id="SHARC" active="1" />
+    <satellite id="ZA-AEROSAT" active="1" />
+    <satellite id="BEEAGLESAT" active="1" />
+    <satellite id="NJUST-1" active="1" />
+    <satellite id="NSIGHT" active="1" />
+    <satellite id="TIANGONG-2" active="1" />
+    <satellite id="BANXING-2" active="1" />
+    <satellite id="ISS DEB (SEDA-AP)" active="0" />
+    <satellite id="STARS-ME" active="0" />
+    <satellite id="SOYUZ-MS 11" active="0" />
+    <satellite id="DELPHINI" active="0" />
+    <satellite id="CATSAT-1" active="1" />
+    <satellite id="TECHEDSAT 8" active="0" />
+    <satellite id="PHOENIX" active="0" />
+    <satellite id="CSUNSAT1" active="0" />
+    <satellite id="PROGRESS-MS 11" active="0" />
+    <satellite id="ASTERIA" active="1" />
+    <satellite id="KESTREL EYE IIM (KE2M)" active="1" />
+    <satellite id="DELLINGR (RBLE)" active="0" />
+    <satellite id="UBAKUSAT" active="0" />
+</root>

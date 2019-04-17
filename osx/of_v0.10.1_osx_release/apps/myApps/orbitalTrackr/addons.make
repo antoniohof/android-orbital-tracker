@@ -1,0 +1,9 @@
+ofxDatGui
+ofxGeo
+ofxPoco
+ofxSatellite
+ofxSpatialHash
+ofxSunCalc
+ofxTime
+ofxTweenzor
+ofxXmlSettings

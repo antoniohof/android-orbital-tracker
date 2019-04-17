@@ -14,7 +14,7 @@ Another feature is the accurate sun light cast over earth, including variation f
 
 ### images
 
-![App](ss/app.png)
+![App](ss/app1.png)
 
 * add satellites with their unique object identifier
 ![XML](ss/xml.png)
